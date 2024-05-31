@@ -1,0 +1,41 @@
+rule_files:
+  - 'alerts.yaml'
+
+tests:
+  - interval: 10s
+    input_series:
+      - series: 'container_cpu_usage_seconds_total{namespace="challenger-005",container="nginx"}'
+        # Each period has a diff of 10. E.g first period is 200...210. Then the diff is 10
+        # As the interval defined in the query is 1m(60s). We divide 10/60=0.166 which is greater than 0.15 that is the limit defined in next time series.  
+        values: '200+2x30' 
+      - series: 'kube_pod_container_resource_limits{namespace="challenger-005",container="nginx",resource="cpu"}'
+        values: '0.15x30' 
+    alert_rule_test:
+      - alertname: 'NGINX exceeding CPU usage'
+        eval_time: 4m
+        exp_alerts:
+          - exp_labels:
+              severity: 'medium'
+            exp_annotations:
+              summary: 'Nginx exceeded CPU limits'
+      - alertname: 'NGINX exceeding CPU usage'
+        eval_time: 1m # Alarms are not firing before 3 min
+        exp_alerts: []
+  - interval: 15s
+    input_series:
+      - series: 'kube_pod_status_phase{namespace="challenger-005",phase="Pending|Unknown", pod="nginx"}'
+        values: '0 1x29' 
+    alert_rule_test:
+      - alertname: 'Pod Status Not Ready'
+        eval_time: 4m
+        exp_alerts:
+          - exp_labels:
+              severity: 'high'
+              namespace: 'challenger-005'
+              pod: 'nginx'
+              phase: 'Pending|Unknown'
+            exp_annotations:
+              summary: 'Nginx pod is in not ready status'
+      - alertname: 'Pod Status Not Ready'
+        eval_time: 1m
+        exp_alerts: []
