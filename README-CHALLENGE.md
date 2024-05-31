@@ -26,7 +26,7 @@ For this section, we have to recreate the alarms from Grafana to be Prometheus a
 
 *TODO*:
 
-- [] Implement pending alerts tests
+- [ ] Implement pending alerts tests
 
 ## Load test
 
@@ -42,9 +42,11 @@ kubectl patch deployment nginx --patch "$(cat nginx-patch.yaml)"
 ```
 
 Which results in the following state for the new deployment:
+
 ![http-request-exceeded-alarms](./assets/image-5.png)
 
 We need to wait 5 minutes to trigger the alar, as we set the `Pending period` to 5min. After that the alarm will be triggered:
+
 ![http-request-exceeded-alarms](./assets/image-6.png)
 
 To revert to previous deployment version:
